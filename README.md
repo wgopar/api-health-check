@@ -57,3 +57,10 @@ Terraform configs under `terraform/` provision the public networking stack, ECS 
 ### Deploying a new version
 
 `npm version <patch|minor|major>` then build/push the container image referenced in `terraform/envs/*.tfvars` before running `terraform apply` for the desired environment.
+
+### Bumping the agent version
+
+1. Ensure your working tree is clean (commit or stash changes).  
+2. Bump the version in `package.json` (e.g., `npm version patch` or `npm version patch --no-git-tag-version` if you don’t want git tags).  
+3. Build and push a new image with the updated tag, and update `container_image` in your `*.tfvars` to match.  
+4. Redeploy (`terraform apply -var-file=envs/<env>.tfvars` or your CI pipeline) so the new version is live.

@@ -6,7 +6,7 @@ import { logger } from "./logger";
 import { apiHealthCheck } from "./entrypoints/apiHealthCheck";
 
 
-
+// added for testing purposes
 const shouldAutoRegister =
   process.env.REGISTER_IDENTITY === undefined
     ? true
