@@ -54,6 +54,56 @@ terraform apply -var-file=envs/dev.tfvars
 
 Terraform configs under `terraform/` provision the public networking stack, ECS Fargate service, HTTPS-enabled Application Load Balancer with `/api-health-check` routing, ACM certificate, and Route 53 DNS required to expose the agent at `port402.com/api-health-check`.
 
+### Architecture
+
+```mermaid
+flowchart LR
+  %% Styling
+  classDef aws fill:#0b1f2a,stroke:#0b1f2a,color:#fff,border-radius:8px;
+  classDef service fill:#142f43,stroke:#0b1f2a,color:#fff,border-radius:8px;
+  classDef storage fill:#123,stroke:#0b1f2a,color:#fff,border-radius:8px;
+
+  subgraph Client["User / Agent Runner"]
+    ClientReq("Browser / Agent")
+  end
+
+  subgraph DNS["Route53"]
+    DNSRec("api.port402.com\\nA Alias")
+  end
+  class DNS,DNSRec aws;
+
+  subgraph Edge["Network Edge"]
+    ALB("Application Load Balancer\\nHTTPS /api-health-check/*")
+    ACM("ACM Cert")
+  end
+  class Edge,ALB,ACM aws;
+
+  subgraph Compute["ECS Fargate Service"]
+    Task("api-health-check Task")
+    CW("CloudWatch Logs")
+    SM("Secrets Manager\\nPAY_TO / PRIVATE_KEY")
+  end
+  class Compute,Task,CW,SM service;
+
+  subgraph IaC["Terraform State"]
+    S3("S3 State Bucket")
+    DDB("DynamoDB Lock Table")
+  end
+  class IaC,S3,DDB storage;
+
+  ClientReq -->|"HTTPS https://api.port402.com/api-health-check/..."| DNSRec --> ALB
+  ALB -->|Forward to Target Group| Task
+  ALB -. uses .-> ACM
+  Task -->|Fetch secrets| SM
+  Task -->|Emit JSON logs| CW
+
+  Terraform["Terraform CLI"] -->|manages| DNSRec
+  Terraform -->|manages| ALB
+  Terraform -->|deploys service| Task
+  Terraform -->|stores state| S3
+  Terraform -->|locks state| DDB
+```
+
 ### Deploying a new version
 
 `npm version <patch|minor|major>` then build/push the container image referenced in `terraform/envs/*.tfvars` before running `terraform apply` for the desired environment.
