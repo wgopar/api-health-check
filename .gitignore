@@ -28,7 +28,6 @@ bun-debug.log*
 # Container / OS cruft
 .DS_Store
 Thumbs.db
-Dockerfile
 
 # Daydreams / Axflow local state
 .daydreams/
