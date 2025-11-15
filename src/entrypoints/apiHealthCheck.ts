@@ -25,7 +25,6 @@ type AlertDispatch = {
 };
 
 const BILLING_ENABLED = process.env.AGENT_BILLING_ENABLED === "true";
-const ALERT_WEBHOOK_UNIT_PRICE_USD = BILLING_ENABLED ? 0.05 : 0;
 const BASE_MONITORING_PRICE = BILLING_ENABLED ? ".001" : "0";
 const HEALTH_CHECK_ATTEMPTS = 4;
 const HEALTH_CHECK_INTERVAL_MS = 250;
@@ -81,12 +80,6 @@ const healthCheckOutputSchema = z.object({
       message: z.string(),
     })
     .optional(),
-  billing: z.object({
-    basePrice: z.string(),
-    alertWebhookCount: z.number(),
-    alertWebhookUnitPriceUsd: z.number(),
-    totalUsd: z.number(),
-  }),
   context: z.object({
     runId: z.string(),
     agentVersion: z.string(),
@@ -96,7 +89,7 @@ const healthCheckOutputSchema = z.object({
 export const apiHealthCheck = {
   key: "api-health-check",
   description:
-    "Send four 250 ms-spaced HEAD/GET probes to an HTTP(S) endpoint, evaluate status + latency budgets, and optionally dispatch billable alert webhooks on failure.",
+    "Send four 250 ms-spaced HEAD/GET probes to an HTTP(S) endpoint, evaluate status + latency budgets, and optionally dispatch alert webhooks on failure.",
   input: healthCheckInputSchema,
   output: healthCheckOutputSchema,
   async handler(ctx: AgentContext) {
@@ -162,15 +155,13 @@ export const apiHealthCheck = {
       alertDispatched: alertDispatch?.dispatched ?? false,
     });
 
-    const alertsTriggered = alertDispatch?.dispatched ? 1 : 0;
     const basePriceNumber = BILLING_ENABLED
       ? Number.parseFloat(BASE_MONITORING_PRICE)
       : 0;
     const normalizedBasePrice = Number.isFinite(basePriceNumber)
       ? basePriceNumber
       : 0;
-    const totalUsd =
-      normalizedBasePrice + alertsTriggered * ALERT_WEBHOOK_UNIT_PRICE_USD;
+    const totalUsd = normalizedBasePrice;
 
     return {
       output: {
@@ -187,12 +178,6 @@ export const apiHealthCheck = {
           errorMessage: health.errorMessage,
         },
         alert: alertDispatch,
-        billing: {
-          basePrice: BASE_MONITORING_PRICE,
-          alertWebhookCount: alertsTriggered,
-          alertWebhookUnitPriceUsd: ALERT_WEBHOOK_UNIT_PRICE_USD,
-          totalUsd,
-        },
         context: {
           runId,
           agentVersion: AGENT_VERSION,
