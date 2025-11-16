@@ -4,7 +4,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: build_and_push_ecr.sh --account AWS_ACCOUNT_ID [--repo REPO_NAME] [--tag IMAGE_TAG] [--region AWS_REGION]
+Usage: build_and_push_ecr.sh --account AWS_ACCOUNT_ID [--repo REPO_NAME] [--region AWS_REGION]
 
 Environment variables:
   AWS_REGION - defaults to us-west-2 when not provided.
@@ -16,7 +16,7 @@ EOF
 }
 
 REPO_NAME="api-health-check"
-IMAGE_TAG="$(git rev-parse --short HEAD 2>/dev/null || date +%s)"
+DEFAULT_TAG="$(node -p "require('./package.json').version" 2>/dev/null || git rev-parse --short HEAD 2>/dev/null || date +%s)"
 AWS_REGION="${AWS_REGION:-us-west-2}"
 AWS_ACCOUNT_ID=""
 
@@ -49,6 +49,8 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+IMAGE_TAG="${IMAGE_TAG:-$DEFAULT_TAG}"
 
 if [[ -z "${AWS_ACCOUNT_ID}" ]]; then
   echo "--account AWS_ACCOUNT_ID is required." >&2
