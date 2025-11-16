@@ -17,17 +17,30 @@ const identity = await createAgentIdentity({
   autoRegister: shouldAutoRegister,
 });
 
-/*
-// TODO: ensure agent metadata correctly added.
 const metadata = generateAgentMetadata(identity, {
   name: "API Health Checker",
-  description: 'Run API health checks with an option to add webhook for failed health check alerts.',
+  description:
+    "Runs rapid HTTP(S) probes, measures latency, and reports status for API endpoints.",
   capabilities: [
-    { name: 'api-health-monitoring', description: 'Runs HTTP(S) probes and reports latency/status results.' },
-    { name: 'alerting', description: 'Triggers webhook alerts when api health checks fail.' },
-  ]
-})
-*/
+    {
+      name: "http-health-monitoring",
+      description:
+        "Performs multiple HTTP(S) probes with HEAD/GET, checks status codes, and reports latency.",
+    },
+    {
+      name: "uptime-alerting",
+      description:
+        "Triggers a webhook when checks fail or exceed latency budgets.",
+    },
+    {
+      name: "latency-reporting",
+      description:
+        "Returns per-run timing details and flags when latency budgets are exceeded.",
+    },
+  ],
+});
+
+console.log(metadata)
 
 logger.info("identity_status", "Fetched agent identity status", {
   status: identity.status,
@@ -85,4 +98,4 @@ const { app, addEntrypoint } = createAgentApp(
 
 addEntrypoint(apiHealthCheck);
 
-export { app };
+export { app, metadata };
