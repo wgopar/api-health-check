@@ -40,8 +40,6 @@ const metadata = generateAgentMetadata(identity, {
   ],
 });
 
-console.log(metadata)
-
 logger.info("identity_status", "Fetched agent identity status", {
   status: identity.status,
   domain: identity.domain,
