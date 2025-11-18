@@ -277,7 +277,7 @@ resource "aws_ecs_task_definition" "this" {
 
 resource "aws_cloudwatch_log_group" "this" {
   name              = "/ecs/${local.app_name}"
-  retention_in_days = 14
+  retention_in_days = 7
   tags              = local.tags
 }
 
