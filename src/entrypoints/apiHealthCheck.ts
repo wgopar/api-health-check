@@ -40,6 +40,7 @@ const healthCheckInputSchema = z.object({
     .default("HEAD")
     .describe("HTTP method used for the probe."),
   expectedStatus: z
+    .coerce
     .number()
     .int()
     .min(100)
@@ -47,6 +48,7 @@ const healthCheckInputSchema = z.object({
     .default(200)
     .describe("Status code considered healthy."),
   maxLatencyMs: z
+    .coerce
     .number()
     .int()
     .positive()

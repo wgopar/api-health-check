@@ -29,7 +29,7 @@ docker run --env-file .env.development -p 8787:8787 api-health-check
 
 Build and upload new image to ECR, then add that image arn in the terraform vars
 ```sh
-bash ./scripts/build_and_push_ecr.sh --repo api-health-check --tag test --region us-west-2 --account 477505023261
+bash ./scripts/build_and_push_ecr.sh --repo api-health-check --region us-west-2 --account 477505023261
 ```
 Point `--env-file` at whichever config you want to test (development, staging, production) before deploying to AWS.
 
