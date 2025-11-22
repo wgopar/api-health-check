@@ -34,11 +34,11 @@ const healthCheckInputSchema = z.object({
   url: z
     .string()
     .url({ message: "Provide a valid HTTP(S) URL to monitor." })
-    .describe("HTTP(S) endpoint to verify, e.g., https://api.example.com/health."),
+    .describe("HTTP(S) endpoint to verify (e.g., https://api.example.com/)"),
   method: z
     .enum(["HEAD", "GET"])
     .default("HEAD")
-    .describe("HTTP method used for the probe (HEAD or GET, e.g., HEAD)."),
+    .describe("HTTP method used for the probe (HEAD or GET)"),
   expectedStatus: z
     .coerce
     .number()
@@ -46,19 +46,19 @@ const healthCheckInputSchema = z.object({
     .min(100)
     .max(599)
     .default(200)
-    .describe("Status code considered healthy (e.g., 200)."),
+    .describe("Status code considered healthy (e.g., 200)"),
   maxLatencyMs: z
     .coerce
     .number()
     .int()
     .positive()
     .default(1_000)
-    .describe("Latency budget in milliseconds (e.g., 1000)."),
+    .describe("Latency budget in milliseconds (e.g., 1000)"),
   alertWebhookUrl: z
     .string()
     .url({ message: "Provide a valid webhook URL." })
     .optional()
-    .describe("Webhook invoked when the health check fails, e.g., https://hooks.example.com/failure."),
+    .describe("Webhook invoked when the health check fails (e.g., https://example.com/my-webhook)"),
 });
 
 const healthCheckOutputSchema = z.object({
