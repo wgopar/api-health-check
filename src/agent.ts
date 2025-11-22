@@ -12,32 +12,11 @@ const shouldAutoRegister =
     ? true
     : process.env.REGISTER_IDENTITY === "true";
 
+// identity registration not yet available on mainnet
 const identity = await createAgentIdentity({
   domain: process.env.AGENT_DOMAIN,
   autoRegister: shouldAutoRegister,
-});
-
-const metadata = generateAgentMetadata(identity, {
-  name: "API Health Checker",
-  description:
-    "Runs rapid HTTP(S) probes, measures latency, and reports status for API endpoints.",
-  capabilities: [
-    {
-      name: "http-health-monitoring",
-      description:
-        "Performs multiple HTTP(S) probes with HEAD/GET, checks status codes, and reports latency.",
-    },
-    {
-      name: "uptime-alerting",
-      description:
-        "Triggers a webhook when checks fail or exceed latency budgets.",
-    },
-    {
-      name: "latency-reporting",
-      description:
-        "Returns per-run timing details and flags when latency budgets are exceeded.",
-    },
-  ],
+  env: process.env
 });
 
 logger.info("identity_status", "Fetched agent identity status", {
@@ -45,15 +24,42 @@ logger.info("identity_status", "Fetched agent identity status", {
   domain: identity.domain,
 });
 
-if (identity.didRegister) {
-  logger.info("identity_registered", "Agent registered successfully", {
-    transactionHash: identity.transactionHash,
-    metadataUrl: `https://${identity.domain}/.well-known/agent-metadata.json`,
+let metadata: ReturnType<typeof generateAgentMetadata> | undefined;
+
+if (identity.didRegister || identity.trust) {
+  metadata = generateAgentMetadata(identity, {
+    name: "API Health Checker",
+    description:
+      "Runs rapid HTTP(S) probes, measures latency, and reports status for API endpoints.",
+    capabilities: [
+      {
+        name: "http-health-monitoring",
+        description:
+          "Performs multiple HTTP(S) probes with HEAD/GET, checks status codes, and reports latency.",
+      },
+      {
+        name: "uptime-alerting",
+        description:
+          "Triggers a webhook when checks fail or exceed latency budgets.",
+      },
+      {
+        name: "latency-reporting",
+        description:
+          "Returns per-run timing details and flags when latency budgets are exceeded.",
+      },
+    ],
   });
-} else if (identity.trust) {
-  logger.info("identity_trusted", "Found existing agent registration", {
-    agentId: identity.record?.agentId,
-  });
+
+  if (identity.didRegister) {
+    logger.info("identity_registered", "Agent registered successfully", {
+      transactionHash: identity.transactionHash,
+      metadataUrl: `https://${identity.domain}/.well-known/agent-metadata.json`,
+    });
+  } else if (identity.trust) {
+    logger.info("identity_trusted", "Found existing agent registration", {
+      agentId: identity.record?.agentId,
+    });
+  }
 } else {
   logger.info(
     "identity_unregistered",

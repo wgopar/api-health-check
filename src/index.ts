@@ -9,6 +9,12 @@ const server = Bun.serve({
     const url = new URL(req.url);
 
     if (url.pathname === "/.well-known/agent-metadata.json") {
+      if (!metadata) {
+        return new Response("Metadata not available - identity not registered", {
+          status: 404,
+          headers: { "content-type": "text/plain" },
+        });
+      }
       return new Response(JSON.stringify(metadata), {
         headers: { "content-type": "application/json" },
       });
